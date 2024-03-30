@@ -1,4 +1,4 @@
-[![](https://jitpack.io/v/GatewayLegends/general-location-service.svg)](https://jitpack.io/#GatewayLegends/general-location-service)
+[![](https://jitpack.io/v/Al-Taie/general-location-service.svg)](https://jitpack.io/#Al-Taie/general-location-service)
 
 # General Location Service (GLS)
 > **for Google & Huawei**
@@ -21,7 +21,7 @@ Step 2. Add the dependency
 
 ```gradle
 dependencies {
-	        implementation 'com.github.GatewayLegends:general-location-service:<VERSION>'
+	        implementation 'com.github.Al-Taie:general-location-service:<VERSION>'
 }
 ```
 
@@ -34,7 +34,7 @@ dependencies {
 
 ```kotlin
 ...
-import com.gateway.gls.di.GLSInitializer
+import com.altaie.gls.di.GLSInitializer
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 // Also can configure the location request for location updates
 
 // first import Priority class
-import com.gateway.gls.domain.models.Priority
+import com.altaie.gls.domain.models.Priority
 
 // Then just use the `configureLocationRequest` method
 CoroutineScope(Dispatchers.IO).launch{
