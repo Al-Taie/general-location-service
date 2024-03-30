@@ -4,13 +4,13 @@ buildscript {
         timber_version = '5.0.1'
         gson_version = '2.10.1'
         gms_service_version = '4.3.13'
-        gms_location_version = '21.0.1'
+        gms_location_version = '21.2.0'
         hms_service_version = '1.6.0.300'
         hms_location_version = '6.9.0.300'
-        gradle_version = '7.2.2'
-        kotlin_version = '1.8.10'
-        jvm_version = JavaVersion.VERSION_1_8
-        sdk_version = 33
+        gradle_version = '8.2.2'
+        kotlin_version = '1.9.23'
+        jvm_version = JavaVersion.VERSION_17
+        sdk_version = 34
     }
 
     repositories {
@@ -34,6 +34,6 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlin_version" apply false
 }
 
-task clean(type: Delete) {
+tasks.register('clean', Delete) {
     delete rootProject.buildDir
 }
