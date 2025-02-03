@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "General-Location-Service-Library"
-include(":app")
+//include(":app")
 include(":gls")
