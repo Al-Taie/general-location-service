@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlin.time.Duration
 
+
 internal class NoneService : LocationService {
     override suspend fun getLastLocation(): Resource<Location> =
         Resource.Fail(error = ServiceFailure.LocationServiceNotFound())
@@ -20,7 +21,7 @@ internal class NoneService : LocationService {
     override fun requestLocationUpdatesAsFlow(): Flow<Resource<Location>> =
         flow { emit(Resource.Fail(error = ServiceFailure.LocationServiceNotFound())) }
 
-    override fun removeLocationUpdates() {}
+    override fun removeLocationUpdates() = Unit
 
     override fun configureLocationRequest(
         priority: Int,
@@ -29,7 +30,7 @@ internal class NoneService : LocationService {
         maxUpdates: Int,
         maxUpdateDelayMillis: Long,
         minUpdateDistanceMeters: Float,
-    ) {}
+    ) = Unit
 
-    override fun requestLocationSettings(resultContracts: ActivityResultLauncher<IntentSenderRequest>) {}
+    override fun requestLocationSettings(resultContracts: ActivityResultLauncher<IntentSenderRequest>) = Unit
 }

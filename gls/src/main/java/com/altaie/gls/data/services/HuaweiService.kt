@@ -6,16 +6,20 @@ import android.location.Location
 import android.os.Looper
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
-import com.altaie.prettycode.core.base.Resource
-import com.altaie.prettycode.core.mapper.toUnKnownError
 import com.altaie.gls.data.LocationRequestProvider
 import com.altaie.gls.domain.base.LocationService
 import com.altaie.gls.domain.entities.ServiceFailure
 import com.altaie.gls.utils.extenstions.await
 import com.altaie.gls.utils.extenstions.isEqual
 import com.altaie.gls.utils.extenstions.isGpsProviderEnabled
+import com.altaie.prettycode.core.base.Resource
 import com.huawei.hms.common.ResolvableApiException
-import com.huawei.hms.location.*
+import com.huawei.hms.location.FusedLocationProviderClient
+import com.huawei.hms.location.LocationCallback
+import com.huawei.hms.location.LocationRequest
+import com.huawei.hms.location.LocationResult
+import com.huawei.hms.location.LocationServices
+import com.huawei.hms.location.LocationSettingsRequest
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
@@ -29,6 +33,7 @@ import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import kotlin.coroutines.resume
 import kotlin.time.Duration
+
 
 @SuppressLint("MissingPermission")
 internal class HuaweiService(
@@ -46,40 +51,14 @@ internal class HuaweiService(
     override fun requestLocationUpdatesAsFlow(): Flow<Resource<Location>> = callbackFlow {
         trySend(Resource.Loading)
 
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                val location = result.locations.minBy { it.accuracy }
-
-                trySendBlocking(Resource.Success(data = location))
-                    .onFailure {
-                        trySendBlocking(
-                            Resource.Fail(
-                                error = ServiceFailure.UnknownError(
-                                    message = it?.message
-                                )
-                            )
-                        )
-                    }
-            }
-
-            override fun onLocationAvailability(availability: LocationAvailability) {
-                if (availability.isLocationAvailable.not()) {
-                    fusedLocationClient.removeLocationUpdates(this)
-                    trySend(Resource.Fail(error = ServiceFailure.LocationServiceNotFound()))
-                }
-            }
+        locationCallback = createLocationCallback { location ->
+            trySendBlocking(Resource.Success(data = location))
+                .onFailure { trySendBlocking(Resource.Fail(error = it.toServiceFailure())) }
         }
 
-        if (context.isGpsProviderEnabled().not())
-            trySend(Resource.Fail(error = ServiceFailure.GpsProviderIsDisabled()))
-        else
-            fusedLocationClient.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
-                Looper.getMainLooper()
-            )
+        startUpdates { error -> trySend(Resource.Fail(error = error)) }
 
-        awaitClose { fusedLocationClient.removeLocationUpdates(locationCallback) }
+        awaitClose { removeLocationUpdates() }
     }.distinctUntilChanged { old, new ->
         old.toData.isEqual(new.toData)
     }.buffer(Channel.UNLIMITED)
@@ -89,44 +68,24 @@ internal class HuaweiService(
             suspendCancellableCoroutine { continuation ->
                 val locations: MutableList<Location> = mutableListOf()
 
-                locationCallback = object : LocationCallback() {
-                    override fun onLocationResult(result: LocationResult) {
-                        val location = result.locations.minBy { it.accuracy }
-                        locations.add(location)
-                        if (locations.size >= locationRequest.numUpdates) {
-                            fusedLocationClient.removeLocationUpdates(this)
-                            continuation.resume(Resource.Success(data = locations))
-                        }
-                    }
-
-                    override fun onLocationAvailability(availability: LocationAvailability) {
-                        if (availability.isLocationAvailable.not()) {
-                            fusedLocationClient.removeLocationUpdates(this)
-                            continuation.resume(Resource.Fail(error = ServiceFailure.LocationServiceNotFound()))
-                        }
+                locationCallback = createLocationCallback { location ->
+                    locations.add(location)
+                    if (locations.size >= locationRequest.numUpdates) {
+                        removeLocationUpdates()
+                        continuation.resume(Resource.Success(data = locations))
                     }
                 }
 
-                runCatching {
-                    if (context.isGpsProviderEnabled().not())
-                        continuation.resume(Resource.Fail(error = ServiceFailure.GpsProviderIsDisabled()))
-                    else
-                        fusedLocationClient.requestLocationUpdates(
-                            locationRequest,
-                            locationCallback,
-                            Looper.getMainLooper()
-                        )
-                }.onFailure { continuation.resume(Resource.Fail(error = it.toUnKnownError())) }
+                startUpdates { error -> continuation.resume(Resource.Fail(error = error)) }
 
-                continuation.invokeOnCancellation {
-                    fusedLocationClient.removeLocationUpdates(locationCallback)
-                }
+                continuation.invokeOnCancellation { removeLocationUpdates() }
             }
         }
 
     override fun removeLocationUpdates() {
-        if (::locationCallback.isInitialized)
-            fusedLocationClient.removeLocationUpdates(locationCallback)
+        if (::locationCallback.isInitialized.not()) return
+        fusedLocationClient.flushLocations()
+        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     override fun configureLocationRequest(
@@ -173,5 +132,31 @@ internal class HuaweiService(
             }
         else
             Timber.d("Location settings request failed with unknown exception: ${exception.message}")
+    }
+
+    private fun createLocationCallback(onLocationResult: (Location) -> Unit): LocationCallback {
+        return object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                val location = result.locations.minBy { it.accuracy }
+                onLocationResult(location)
+            }
+        }
+    }
+
+    private fun startUpdates(onFailure: (ServiceFailure) -> Unit) = runCatching {
+        if (context.isGpsProviderEnabled())
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        else
+            onFailure(ServiceFailure.GpsProviderIsDisabled())
+    }.onFailure { onFailure(it.toServiceFailure()) }
+
+    private fun Throwable?.toServiceFailure(): ServiceFailure = when (this) {
+        is ResolvableApiException -> ServiceFailure.LocationServiceNotFound()
+        null -> ServiceFailure.UnknownError()
+        else -> ServiceFailure.UnknownError(message = message)
     }
 }

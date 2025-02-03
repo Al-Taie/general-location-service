@@ -3,8 +3,10 @@ package com.altaie.gls.data
 
 import com.altaie.gls.utils.LocationRequestDefaults
 import com.google.android.gms.location.Priority
+import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationRequest as LocationRequestGoogle
 import com.huawei.hms.location.LocationRequest as LocationRequestHuawei
+
 
 internal sealed class LocationRequestProvider<out T> {
     class Google(
@@ -22,6 +24,8 @@ internal sealed class LocationRequestProvider<out T> {
             .setMaxUpdates(maxUpdates)
             .setMaxUpdateDelayMillis(maxUpdateDelayMillis)
             .setMinUpdateDistanceMeters(minUpdateDistanceMeters)
+            .setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+            .setWaitForAccurateLocation(true)
             .build()
     }
 
