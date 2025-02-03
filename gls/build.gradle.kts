@@ -37,6 +37,16 @@ android {
     }
 }
 
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components.getByName("release"))
+            }
+        }
+    }
+}
+
 dependencies {
     // Dependencies
     implementation(libs.activity.ktx)
