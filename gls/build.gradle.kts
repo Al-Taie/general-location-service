@@ -5,6 +5,7 @@ import com.altaie.buildscr.AppConfig.Version
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    `maven-publish`
 }
 
 android {
