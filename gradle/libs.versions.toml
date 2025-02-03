@@ -1,0 +1,47 @@
+[versions]
+activityKtx = "1.10.0"
+appcompat = "1.7.0"
+constraintlayout = "2.2.0"
+coreKtx = "1.15.0"
+espressoCore = "3.6.1"
+gradle = "8.8.0"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+kotlin = "2.1.0"
+gson = "2.12.1"
+googleServices = "4.4.2"
+kotlinx = "1.10.1"
+material = "1.12.0"
+playServicesMaps = "19.0.0"
+prettycode = "0.0.4"
+timber = '5.0.1'
+gmsLocation = '21.3.0'
+hmsService = '1.9.1.304'
+hmsLocation = '6.12.0.300'
+
+[libraries]
+activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
+ext-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
+gms = { module = "com.google.gms:google-services", version.ref = "googleServices" }
+hms = { module = "com.huawei.agconnect:agcp", version.ref = "hmsService" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+junit = { module = "junit:junit", version.ref = "junit" }
+coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinx" }
+hmsLocation = { module = "com.huawei.hms:location", version.ref = "hmsLocation" }
+gmsLocation = { module = "com.google.android.gms:play-services-location", version.ref = "gmsLocation" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
+prettycode = { module = "com.github.Al-Taie:PrettyCode", version.ref = "prettycode" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "gradle" }
+android-application = { id = "com.android.application", version.ref = "gradle" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+
+[bundles]
