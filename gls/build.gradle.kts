@@ -21,7 +21,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = AppConfig.ENABLE_R8_FULL_MODE
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -40,8 +40,11 @@ android {
 afterEvaluate {
     publishing {
         publications {
-            create<MavenPublication>("release") {
-                from(components.getByName("release"))
+            register<MavenPublication>("release") {
+                groupId = "com.github.Al-Taie"
+                artifactId = "general-location-service"
+                version = "1.5.3"
+                from(components["release"])
             }
         }
     }
